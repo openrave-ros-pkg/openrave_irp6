@@ -22,7 +22,7 @@ if __name__ == '__main__':
 	track = IRPOS("IRpOS", "Irp6ot", 7)
 
 	env = Environment()
-	#env.SetViewer('qtcoin')
+	env.SetViewer('qtcoin')
 	#env.Load('data/irp6both.env.xml')
 	EPS = 1e-10
 
@@ -40,27 +40,28 @@ if __name__ == '__main__':
 	postument_o=robot.SetActiveManipulator('postument');
 	track_o=robot.SetActiveManipulator('track');
     
-	robot.SetActiveDOFs(postument_o.GetArmIndices());
-	robot.SetActiveDOFs(track_o.GetArmIndices());
-	
 	print 'openrave ok'
 	
 	time.sleep(5)
-
-	track.move_to_synchro_position(10.0)
-	postument.move_to_synchro_position(10.0)
+	postument.move_to_synchro_position(20.0)
+	track.move_to_synchro_position(20.0)
+	
+	robot.SetActiveDOFs(postument_o.GetArmIndices());
+	robot.SetDOFValues(postument.get_joint_position(),postument_o.GetArmIndices())
+	robot.SetActiveDOFs(track_o.GetArmIndices());
+	robot.SetDOFValues(track.get_joint_position(),track_o.GetArmIndices())
 	
 	print "OpenRAVE move on!"
 	robot.SetActiveManipulator('postument');
 	robot.SetDOFValues(postument.get_joint_position(),postument_o.GetArmIndices())
 	with env:
 		sol = [-1.28227752354415, -1.541861095576026, 5.504115800705756e-05, 1.0007174886590251, 4.754815971689398, -1.91731301362624]
-		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=False)
+		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,postument_o.GetArmIndices())
 
-	postument.move_to_joint_position([-1.28227752354415, -1.541861095576026, 5.504115800705756e-05, 1.0007174886590251, 4.754815971689398, -1.91731301362624], 3.0)
+	postument.move_to_joint_position([-1.28227752354415, -1.541861095576026, 0, 1.0007174886590251, 4.754815971689398, -1.91731301362624], 10.0)
 
 	"""print "IRPOS postument move on!"
 	goal = FollowJointTrajectoryGoal()
@@ -79,7 +80,7 @@ if __name__ == '__main__':
 	print "position: " + str(pos)
 	with env:
 		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
-		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=False)
+		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=True, steplength=0.02, postprocessingplanner="ParabolicSmoother")
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,track_o.GetArmIndices())
@@ -93,21 +94,28 @@ if __name__ == '__main__':
 		velGroup = conf.GetGroupFromName("joint_velocities")
 	except openrave_exception:
 		velGroup = None;
+	try:
+		gr_tim = conf.GetGroupFromName("deltatime")
+	except openrave_exception:
+		gr_tim = None
+		times = None
 	joints = []
 	vels = []
 	accs = []
+	times = []
 	for i in range (0,traj.GetNumWaypoints()):
 		w=traj.GetWaypoint(i);		
 		joints.append([w[jointGroup.offset],w[jointGroup.offset+1],w[jointGroup.offset+2],w[jointGroup.offset+3],w[jointGroup.offset+4],w[jointGroup.offset+5]]);
 		vels.append([w[velGroup.offset],w[velGroup.offset+1],w[velGroup.offset+2],w[velGroup.offset+3],w[velGroup.offset+4],w[velGroup.offset+5]]);
+		times.append(w[gr_tim.offset])
 	points = []
-	time=1;
+	delay=0;
 	for i in range(1,len(joints)):
-		time = time+ (joints[i][0]-joints[i-1][0]) / (  vels[i-1][0]+  (vels[i][0]-vels[i-1][0])/2 )
-		if (joints[i][0]-joints[i-1][0]) / (  vels[i-1][0]+  (vels[i][0]-vels[i-1][0])/2 ) < 1.0:
+		delay = delay+times[i]
+		if times[i] <1:
 			continue
-		print str(time)
-		points.append( JointTrajectoryPoint(joints[i], vels[i], [], [], rospy.Duration(time)) )
+		print str(delay)
+		points.append( JointTrajectoryPoint(joints[i], vels[i], [], [], rospy.Duration(delay)) )
 	track.move_along_joint_trajectory(points)
 	#track.move_to_joint_position([0.1, 0.0, -1.5418065817051163, 0.0, 1.5, 1.57, -1.57], 3.0)
 
@@ -122,7 +130,7 @@ if __name__ == '__main__':
 	robot.SetDOFValues(track.get_joint_position(),track_o.GetArmIndices())
 	with env:
 		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.00904485399, 1.30059724452807, 1.20842285353])
-		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=False)
+		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=True, steplength=0.02, postprocessingplanner="ParabolicSmoother")
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,track_o.GetArmIndices())
@@ -136,21 +144,28 @@ if __name__ == '__main__':
 		velGroup = conf.GetGroupFromName("joint_velocities")
 	except openrave_exception:
 		velGroup = None;
+	try:
+		gr_tim = conf.GetGroupFromName("deltatime")
+	except openrave_exception:
+		gr_tim = None
+		times = None
 	joints = []
 	vels = []
 	accs = []
+	times = []
 	for i in range (0,traj.GetNumWaypoints()):
 		w=traj.GetWaypoint(i);		
 		joints.append([w[jointGroup.offset],w[jointGroup.offset+1],w[jointGroup.offset+2],w[jointGroup.offset+3],w[jointGroup.offset+4],w[jointGroup.offset+5]]);
 		vels.append([w[velGroup.offset],w[velGroup.offset+1],w[velGroup.offset+2],w[velGroup.offset+3],w[velGroup.offset+4],w[velGroup.offset+5]]);
+		times.append(w[gr_tim.offset])
 	points = []
-	time=1;
+	time=0;
 	for i in range(1,len(joints)):
-		time = time+ (joints[i][0]-joints[i-1][0]) / (  vels[i-1][0]+  (vels[i][0]-vels[i-1][0])/2 )
-		if (joints[i][0]-joints[i-1][0]) / (  vels[i-1][0]+  (vels[i][0]-vels[i-1][0])/2 ) < 1.0:
+		delay = delay+ times[i]
+		if times[i] <1:
 			continue
-		print str(time)
-		points.append( JointTrajectoryPoint(joints[i], vels[i], [], [], rospy.Duration(time)) )
+		print str(delay)
+		points.append( JointTrajectoryPoint(joints[i], vels[i], [], [], rospy.Duration(delay)) )
 	track.move_along_joint_trajectory(points)
 
 
