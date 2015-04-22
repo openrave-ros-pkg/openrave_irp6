@@ -7,7 +7,7 @@ import actionlib
 from irpos import *
 from operator import *
 
-import irp6kinematic
+from irp6kinematic import *
 
 import time
 import openravepy
@@ -33,6 +33,8 @@ if __name__ == '__main__':
 	robot = env.GetRobot(name)
 	conveyor = env.ReadKinBodyXMLFile('data/conveyor.kinbody.xml')
 	env.Add(conveyor)
+	
+	irp6Kinematic = Irp6Kinematic(env,robot)
  
 	basemanip = interfaces.BaseManipulation(robot)
 	taskprob = interfaces.TaskManipulation(robot)
@@ -56,7 +58,7 @@ if __name__ == '__main__':
 	robot.SetDOFValues(postument.get_joint_position(),postument_o.GetArmIndices())
 	with env:
 		sol = [-1.28227752354415, -1.541861095576026, 5.504115800705756e-05, 1.0007174886590251, 4.754815971689398, -1.91731301362624]
-		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
+		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=False)
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,postument_o.GetArmIndices())
@@ -79,8 +81,8 @@ if __name__ == '__main__':
 	robot.SetDOFValues(track.get_joint_position(),track_o.GetArmIndices())
 	print "position: " + str(pos)
 	with env:
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
-		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=True, steplength=0.02, postprocessingplanner="ParabolicSmoother")
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
+		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=False, steplength=0.02, postprocessingplanner="ParabolicSmoother")
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,track_o.GetArmIndices())
@@ -129,8 +131,8 @@ if __name__ == '__main__':
 	track_o=robot.SetActiveManipulator('track');
 	robot.SetDOFValues(track.get_joint_position(),track_o.GetArmIndices())
 	with env:
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.00904485399, 1.30059724452807, 1.20842285353])
-		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=True, steplength=0.02, postprocessingplanner="ParabolicSmoother")
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.00904485399, 1.30059724452807, 1.20842285353])
+		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=False, steplength=0.02, postprocessingplanner="ParabolicSmoother")
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,track_o.GetArmIndices())

@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+import rospy
+import tf
+import actionlib
+
+from irpos import *
+from operator import *
+
+from irp6Robot import *
+
+import time
+import openravepy
+if not __openravepy_build_doc__:
+    from openravepy import *
+    from numpy import *
+
+def initialize(mode='urdf',xmlFile='data/irp6both.env.xml'):
+	env = Environment()
+	env.SetViewer('qtcoin')
+		
+	if mode=='urdf':
+		print "Inicjacja urdfowa"
+		module = RaveCreateModule(env, 'urdf')
+		name = module.SendCommand('load package://irp6_description/robots/irp6pboth.urdf.xacro package://irp6_description/robots/irp6pboth.srdf')
+		robot = env.GetRobot(name)
+		conveyor = env.ReadKinBodyXMLFile('data/conveyor.kinbody.xml')
+		#env.Add(conveyor)
+	else:
+		print "Inicjacja colladowa"
+		env.Load(xmlFile)
+		robot = env.GetRobots()[0]
+	irp6Manager = Irp6Robot(env,robot)
+	return env, irp6Manager
+

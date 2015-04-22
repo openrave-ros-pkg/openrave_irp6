@@ -21,7 +21,7 @@
 from __future__ import with_statement # for python 2.5
 __author__ = 'Rosen Diankov'
 
-import irp6kinematic
+from irp6kinematic import *
 
 import time
 import openravepy
@@ -75,6 +75,7 @@ def main(env):
 	#handle = env.RegisterCollisionCallback(collisioncallback)
 
 	robot = env.GetRobots()[0]
+	irp6Kinematic = Irp6Kinematic(env,robot)
     
 	basemanip = interfaces.BaseManipulation(robot)
 	taskprob = interfaces.TaskManipulation(robot)
@@ -89,14 +90,14 @@ def main(env):
 	track = robot.SetActiveManipulator('track');
 	with env:
 		print "jak jest"
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, 0.60059724452807, 1.00842285353])
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, 0.60059724452807, 1.00842285353])
 		print sol
 		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
 	time.sleep(4)
 	
 	with env:
 		print "jak jest"
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, 1.00059724452807, 1.00842285353])
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, 1.00059724452807, 1.00842285353])
 		print sol
 		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
 	time.sleep(4)

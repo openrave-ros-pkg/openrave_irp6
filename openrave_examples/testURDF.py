@@ -31,7 +31,7 @@ if not __openravepy_build_doc__:
 
 def main(env):
 	"Main example code."
-	#env.SetViewer('qtcoin')
+	env.SetViewer('qtcoin')
 	#env.Load('data/irp6both.env.xml')
 	EPS = 1e-10
 	

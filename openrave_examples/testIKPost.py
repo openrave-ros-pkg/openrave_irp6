@@ -21,7 +21,7 @@
 from __future__ import with_statement # for python 2.5
 __author__ = 'Rosen Diankov'
 
-import irp6kinematic
+from irp6kinematic import *
 
 import time
 import openravepy
@@ -75,6 +75,7 @@ def main(env):
 	#handle = env.RegisterCollisionCallback(collisioncallback)
 
 	robot = env.GetRobots()[0]
+	irp6Kinematic = Irp6Kinematic(env,robot)
 	
 	print robot
     
@@ -99,7 +100,7 @@ def main(env):
 	postument = robot.SetActiveManipulator('postument');
 	with env:
 		print "jak jest"
-		sol2 = irp6kinematic.solveIKPost(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.00059724452807, 1.12842285353])
+		sol2 = irp6Kinematic.solveIKPost([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.00059724452807, 1.12842285353])
 		traj=basemanip.MoveManipulator(sol2,outputtrajobj=True,execute=True)
 	if math.fabs(sol1[1]-sol2[0])<EPS and math.fabs(sol1[2]-sol2[1])<EPS and math.fabs(sol1[3]-sol2[2])<EPS and math.fabs(sol1[4]-sol2[3])<EPS and math.fabs(sol1[5]-sol2[4])<EPS and math.fabs(sol1[6]-sol2[5])<EPS:
 		print "OK"
@@ -121,7 +122,7 @@ def main(env):
 	postument = robot.SetActiveManipulator('postument');
 	with env:
 		print "jak jest"
-		sol2 = irp6kinematic.solveIKPost(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.00059724452807, 1.00842285353])
+		sol2 = irp6Kinematic.solveIKPost([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.00059724452807, 1.00842285353])
 		traj=basemanip.MoveManipulator(sol2,outputtrajobj=True,execute=True)
 	if math.fabs(sol1[1]-sol2[0])<EPS and math.fabs(sol1[2]-sol2[1])<EPS and math.fabs(sol1[3]-sol2[2])<EPS and math.fabs(sol1[4]-sol2[3])<EPS and math.fabs(sol1[5]-sol2[4])<EPS and math.fabs(sol1[6]-sol2[5])<EPS:
 		print "OK"
@@ -141,7 +142,7 @@ def main(env):
 	postument = robot.SetActiveManipulator('postument');
 	with env:
 		print "jak jest"
-		sol2 = irp6kinematic.solveIKPost(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.20059724452807, 1.00842285353])
+		sol2 = irp6Kinematic.solveIKPost([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.20059724452807, 1.00842285353])
 		traj=basemanip.MoveManipulator(sol2,outputtrajobj=True,execute=True)
 	if math.fabs(sol1[1]-sol2[0])<EPS and math.fabs(sol1[2]-sol2[1])<EPS and math.fabs(sol1[3]-sol2[2])<EPS and math.fabs(sol1[4]-sol2[3])<EPS and math.fabs(sol1[5]-sol2[4])<EPS and math.fabs(sol1[6]-sol2[5])<EPS:
 		print "OK"
@@ -161,7 +162,7 @@ def main(env):
 	postument = robot.SetActiveManipulator('postument');
 	with env:
 		print "jak jest"
-		sol2 = irp6kinematic.solveIKPost(env,[0.60625134692, -0.475428409334, 0.0512887793112, 0.635449913898],[0.615015785585, -0.280596693012, 1.14965358893])
+		sol2 = irp6Kinematic.solveIKPost([0.60625134692, -0.475428409334, 0.0512887793112, 0.635449913898],[0.615015785585, -0.280596693012, 1.14965358893])
 		traj=basemanip.MoveManipulator(sol2,outputtrajobj=True,execute=True)
 	if math.fabs(sol1[1]-sol2[0])<EPS and math.fabs(sol1[2]-sol2[1])<EPS and math.fabs(sol1[3]-sol2[2])<EPS and math.fabs(sol1[4]-sol2[3])<EPS and math.fabs(sol1[5]-sol2[4])<EPS and math.fabs(sol1[6]-sol2[5])<EPS:
 		print "OK"

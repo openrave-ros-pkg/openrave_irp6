@@ -6,7 +6,7 @@
 from __future__ import with_statement # for python 2.5
 __author__ = 'Przemo'
 
-import irp6kinematic
+from irp6kinematic import *
 
 import time
 import openravepy
@@ -55,11 +55,13 @@ def main(env):
 	env.SetViewer('qtcoin')
 	env.Load('data/irp6both.env.xml')
 	EPS = 1e-10
+	
     #physics = RaveCreatePhysicsEngine(env,'ode')
 	# env.SetPhysicsEngine(physics)
 	#handle = env.RegisterCollisionCallback(collisioncallback)
 
 	robot = env.GetRobots()[0]
+	irp6Kinematic = Irp6Kinematic(env,robot)
     
 	basemanip = interfaces.BaseManipulation(robot)
 	taskprob = interfaces.TaskManipulation(robot)
@@ -75,7 +77,7 @@ def main(env):
 	robot.SetActiveManipulator('postument');
 	with env:
 		print "jak jest"
-		sol = irp6kinematic.solveIKPost(env,[-0.30736250029, -0.787407586002, 0.0117646824742, 0.534208928387],[-0.139239407935, -0.74380811192, 1.15148372188])
+		sol = irp6Kinematic.solveIKPost([-0.30736250029, -0.787407586002, 0.0117646824742, 0.534208928387],[-0.139239407935, -0.74380811192, 1.15148372188])
 		sol = [-1.38227752354415, -1.541861095576026, 5.504115800705756e-05, 1.0007174886590251, 4.754815971689398, -1.91731301362624]
 		print sol
 		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
@@ -84,7 +86,7 @@ def main(env):
 	robot.SetActiveManipulator('track');	
 	with env:
 		print "jak jest"
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
 		print sol
 		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
 	time.sleep(4)
@@ -92,7 +94,7 @@ def main(env):
 	robot.SetActiveManipulator('track');	
 	with env:
 		print "jak jest"
-		sol = irp6kinematic.solveIKTrack(env,[-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.00904485399, 1.30059724452807, 1.20842285353])
+		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.00904485399, 1.30059724452807, 1.20842285353])
 		print sol
 		traj=basemanip.MoveManipulator(sol,outputtrajobj=True,execute=True)
 	time.sleep(4)
