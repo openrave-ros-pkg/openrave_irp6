@@ -82,7 +82,7 @@ if __name__ == '__main__':
 	print "position: " + str(pos)
 	with env:
 		sol = irp6Kinematic.solveIKTrack([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.60904485399, 1.30059724452807, 1.20842285353])
-		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=False, steplength=0.02, postprocessingplanner="ParabolicSmoother")
+		traj=basemanip.MoveActiveJoints(sol,outputtrajobj=True,execute=False)
 	while not robot.GetController().IsDone():
 		time.sleep(0.01)	
 	robot.SetDOFValues(sol,track_o.GetArmIndices())

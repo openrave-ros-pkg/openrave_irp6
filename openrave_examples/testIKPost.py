@@ -18,8 +18,7 @@
 
 .. examplepost-block:: tutorial_ik5d
 """
-from __future__ import with_statement # for python 2.5
-__author__ = 'Rosen Diankov'
+
 
 from irp6kinematic import *
 
