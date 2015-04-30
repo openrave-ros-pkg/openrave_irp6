@@ -141,7 +141,7 @@ class Irp6Manipulator:
 			solution=None
 			
 		if solution is not None:
-			self.moveToJointPosition(solution);
+			self.moveToJointPosition(solution,simulate);
 		else:
 			print self.FAILC+"[OpenRAVEIrp6] Could not find IK solution"+self.ENDC
 	
@@ -154,7 +154,7 @@ class Irp6Manipulator:
 			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
 			solution=None
 		if solution is not None:
-			self.moveToJointPosition(solution);
+			self.moveToJointPosition(solution,simulate);
 		else:
 			print self.FAILC+"[OpenRAVEIrp6] Could not find IK solution"+self.ENDC
 
