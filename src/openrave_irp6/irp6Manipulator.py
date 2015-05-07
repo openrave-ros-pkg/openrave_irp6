@@ -32,12 +32,25 @@ class Irp6Manipulator:
 		self.kinematicSolver=kinematicSolver
 		
 		self.updateManipulatorPosition()
-	
+	#
+	#
+	# Misc methods
+	#
+	#
+	def isIKSolutionExist(self,position):
+		if self.manipulator.GetName()=='postument':
+			solution = self.kinematicSolver.solveIKPost([position.orientation.x, position.orientation.y, position.orientation.z, position.orientation.w ],[position.position.x, position.position.y, position.position.z])
+		elif self.manipulator.GetName()=='track':
+			solution = self.kinematicSolver.solveIKTrack([position.orientation.x, position.orientation.y, position.orientation.z, position.orientation.w ],[position.position.x, position.position.y, position.position.z])
+		else:
+			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
+			solution=None
+		return solution!=None
+
 	def waitForRobot(self):
 		robot = self.manipulator.GetRobot()
 		while not robot.GetController().IsDone():
-			time.sleep(0.01)
-			
+			time.sleep(0.01)	
 			
 	def updateManipulatorPosition(self):
 		robot = self.manipulator.GetRobot()
@@ -45,8 +58,12 @@ class Irp6Manipulator:
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
 		else:
 			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
-	
-		
+
+	#
+	#
+	#Move methods
+	#
+	#
 	def moveToJointPosition(self,dstJoints,simulate=True):
 		#Check length of joints list
 		if len(self.manipulator.GetArmIndices())!=len(dstJoints):
@@ -58,8 +75,6 @@ class Irp6Manipulator:
 		
 		#set starting position same as real robot
 		if self.irpos!=None:
-			print "POSITION: "+ self.manipulator.GetName()+ " " + str(self.irpos.get_joint_position())
-			print "DESTINATION: "+ self.manipulator.GetName()+ " " + str(dstJoints)
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
 		#planning trajectory
 		conf=None
@@ -105,10 +120,7 @@ class Irp6Manipulator:
 			points = []
 			delay=0;
 			for i in range(1,len(joints)):
-				print "points: " + str(joints[i])
-				print "vels: " + str(vels[i])
 				delay = delay+times[i]
-				print "delay: " +str(delay)
 				points.append( JointTrajectoryPoint(joints[i], vels[i], [], [], rospy.Duration(delay)) )
 			#moving
 			if len(points)!=0:
@@ -164,3 +176,17 @@ class Irp6Manipulator:
 		elif self.manipulator.GetName()=='track':
 			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
 		self.moveToJointPosition(pos,simulate)
+	#
+	#
+	#Get position methods
+	#
+	#
+	def getCartesianPosition(self):
+		if self.manipulator.GetName()=='postument':
+			solution = self.kinematicSolver.solveFKPost()
+		elif self.manipulator.GetName()=='track':
+			solution = self.kinematicSolver.solveFKTrack()
+		else:
+			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
+			solution=None
+		return solution
