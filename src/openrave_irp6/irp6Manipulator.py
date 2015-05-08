@@ -61,7 +61,7 @@ class Irp6Manipulator:
 
 	#
 	#
-	#Move methods
+	#Move arm methods
 	#
 	#
 	def moveToJointPosition(self,dstJoints,simulate=True):
@@ -176,6 +176,17 @@ class Irp6Manipulator:
 		elif self.manipulator.GetName()=='track':
 			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
 		self.moveToJointPosition(pos,simulate)
+	#
+	#
+	#Move gripper methods
+	#
+	#
+	def tfgToJointPosition(self,position,time=10):
+		if self.irpos!=None:
+			irpos.tfg_to_joint_position(position,time)
+		else:
+			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
+	
 	#
 	#
 	#Get position methods
