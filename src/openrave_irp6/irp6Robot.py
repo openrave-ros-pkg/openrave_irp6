@@ -22,7 +22,7 @@ if not __openravepy_build_doc__:
     from numpy import *
 
 class Irp6Robot:
-	def __init__(self,env,robot,manageIrpos):
+	def __init__(self,env,robot,manageIrpos=True,planner=None):
 
 		irp6Kinematic = Irp6Kinematic(env,robot)
 		
@@ -51,8 +51,8 @@ class Irp6Robot:
 			robot.SetDOFValues([0,-0.10063291139240507, -1.5419428654532268, 0.019737556833721442, 1.1335183568246088, 3.658072916666667, -2.7381185214159984],track.GetArmIndices())
 			robot.SetDOFValues([-0.10063291139240507, -1.5419428654532268, 0.019737556833721442, 1.1335183568246088, 3.658072916666667, -2.7381185214159984],postument.GetArmIndices())
 		
-		self.postument = Irp6Manipulator(env,postument,baseManipulation,irp6Kinematic,postumentIrpos)
-		self.track = Irp6Manipulator(env,track,baseManipulation,irp6Kinematic,trackIrpos)
+		self.postument = Irp6Manipulator(env,postument,baseManipulation,irp6Kinematic,postumentIrpos,planner)
+		self.track = Irp6Manipulator(env,track,baseManipulation,irp6Kinematic,trackIrpos,planner)
 		
 	def move(self):
 		track = self.robot.SetActiveManipulator('track');

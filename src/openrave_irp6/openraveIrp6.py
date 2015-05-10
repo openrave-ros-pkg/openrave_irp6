@@ -15,7 +15,7 @@ if not __openravepy_build_doc__:
     from openravepy import *
     from numpy import *
 
-def initialize(mode='urdf',xmlFile='data/irp6both.env.xml',viewerEnabled=True,manageIrpos=True):
+def initialize(mode='urdf',xmlFile='data/irp6both.env.xml',viewerEnabled=True,manageIrpos=True,planner=None):
 	env = Environment()
 	if viewerEnabled==True:
 		env.SetViewer('qtcoin')
@@ -30,7 +30,7 @@ def initialize(mode='urdf',xmlFile='data/irp6both.env.xml',viewerEnabled=True,ma
 		env.Load(xmlFile)
 		robot = env.GetRobots()[0]
 		
-	irp6Robot = Irp6Robot(env,robot,manageIrpos)	
+	irp6Robot = Irp6Robot(env,robot,manageIrpos,planner)	
 	
 	
 	return env, irp6Robot

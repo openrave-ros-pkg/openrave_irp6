@@ -24,14 +24,15 @@ class Irp6Manipulator:
 	FAILC = '\033[91m'
 	ENDC = '\033[0m'
 	
-	def __init__(self,env,manipulator,baseManipulation,kinematicSolver,irpos=None):
-		self.env=env
-		self.manipulator=manipulator
-		self.baseManipulation=baseManipulation
+	def __init__(self,env,manipulator,baseManipulation,kinematicSolver,irpos=None,planner=None):
+		self.env = env
+		self.manipulator = manipulator
+		self.baseManipulation = baseManipulation
 		self.irpos = irpos
-		self.kinematicSolver=kinematicSolver
-		
+		self.kinematicSolver = kinematicSolver
 		self.updateManipulatorPosition()
+		self.planner=planner
+		print planner
 	#
 	#
 	# Misc methods
@@ -76,16 +77,44 @@ class Irp6Manipulator:
 		#set starting position same as real robot
 		if self.irpos!=None:
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
-		#planning trajectory
-		conf=None
-		try:
-			with self.env:
-				traj=self.baseManipulation.MoveActiveJoints(dstJoints,outputtrajobj=True,execute=simulate)
-			self.waitForRobot()
+		traj = None
+		conf = None
+		if self.planner!=None:
+			#preparing for planning
+			planner = RaveCreatePlanner(self.env, 'OMPL_RRT')
+			simplifier = RaveCreatePlanner(self.env, 'OMPL_Simplifier')
+			simplifier.InitPlan(robot, Planner.PlannerParameters())
+		
+			params = Planner.PlannerParameters()
+			params.SetRobotActiveJoints(robot)
+			params.SetGoalConfig(dstJoints)
+			#params.SetExtraParameters('<range>0.02</range>')
+			planner.InitPlan(robot, params)
+
+	
+			#planning trajectory
+			traj = RaveCreateTrajectory(self.env, '')
+			result = planner.PlanPath(traj)
+			assert result == PlannerStatus.HasSolution
+			result = simplifier.PlanPath(traj)
+			assert result == PlannerStatus.HasSolution	
+			result = planningutils.RetimeTrajectory(traj)
+			assert result == PlannerStatus.HasSolution
+		
+			if simulate:
+				robot.GetController().SetPath(traj)
+				self.waitForRobot()
 			robot.SetDOFValues(dstJoints,self.manipulator.GetArmIndices())
 			conf = traj.GetConfigurationSpecification();
-		except planning_error:
-			print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory"+self.ENDC
+		else:
+			try:
+				with self.env:
+					traj=self.baseManipulation.MoveActiveJoints(dstJoints,outputtrajobj=True,execute=simulate)
+				self.waitForRobot()
+				robot.SetDOFValues(dstJoints,self.manipulator.GetArmIndices())
+				conf = traj.GetConfigurationSpecification();
+			except planning_error:
+				print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory"+self.ENDC
 		
 		#moving real robot
 		if self.irpos!=None and conf!=None:
