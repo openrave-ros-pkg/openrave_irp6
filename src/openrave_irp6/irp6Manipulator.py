@@ -24,7 +24,7 @@ class Irp6Manipulator:
 	FAILC = '\033[91m'
 	ENDC = '\033[0m'
 	
-	def __init__(self,env,manipulator,baseManipulation,kinematicSolver,irpos=None,planner=None):
+	def __init__(self,env,manipulator,baseManipulation,kinematicSolver,irpos=None,planner=None,simplifier='OMPL_Simplifier'):
 		self.env = env
 		self.manipulator = manipulator
 		self.baseManipulation = baseManipulation
@@ -32,7 +32,7 @@ class Irp6Manipulator:
 		self.kinematicSolver = kinematicSolver
 		self.updateManipulatorPosition()
 		self.planner=planner
-		print planner
+		self.simplifier=simplifier
 	#
 	#
 	# Misc methods
@@ -81,8 +81,8 @@ class Irp6Manipulator:
 		conf = None
 		if self.planner!=None:
 			#preparing for planning
-			planner = RaveCreatePlanner(self.env, 'OMPL_RRT')
-			simplifier = RaveCreatePlanner(self.env, 'OMPL_Simplifier')
+			planner = RaveCreatePlanner(self.env, self.planner)
+			simplifier = RaveCreatePlanner(self.env, self.simplifier)
 			simplifier.InitPlan(robot, Planner.PlannerParameters())
 		
 			params = Planner.PlannerParameters()

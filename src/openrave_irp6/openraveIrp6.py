@@ -15,7 +15,7 @@ if not __openravepy_build_doc__:
     from openravepy import *
     from numpy import *
 
-def initialize(mode='urdf',xmlFile='data/irp6both.env.xml',viewerEnabled=True,manageIrpos=True,planner=None):
+def initialize(mode='urdf',xmlFile='data/irp6both.env.xml',viewerEnabled=True,manageIrpos=True,planner=None,simplifier='OMPL_Simplifier'):
 	env = Environment()
 	if viewerEnabled==True:
 		env.SetViewer('qtcoin')

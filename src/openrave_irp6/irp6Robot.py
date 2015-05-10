@@ -22,7 +22,7 @@ if not __openravepy_build_doc__:
     from numpy import *
 
 class Irp6Robot:
-	def __init__(self,env,robot,manageIrpos=True,planner=None):
+	def __init__(self,env,robot,manageIrpos=True,planner=None,simplifier='OMPL_Simplifier'):
 
 		irp6Kinematic = Irp6Kinematic(env,robot)
 		
