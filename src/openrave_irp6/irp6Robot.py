@@ -22,7 +22,7 @@ if not __openravepy_build_doc__:
     from numpy import *
 
 class Irp6Robot:
-	def __init__(self,env,robot,manageIrpos=True,planner=None,simplifier='OMPL_Simplifier'):
+	def __init__(self,env,robot,manageIrpos=True,planner=None,simplifier='OMPL_Simplifier',csn=False):
 
 		irp6Kinematic = Irp6Kinematic(env,robot)
 		
@@ -41,10 +41,12 @@ class Irp6Robot:
 		robot.SetDOFAccelerationLimits(accel_limits)
 		
 		if manageIrpos==True:
-			#postumentIrpos=IRPOS("IRpOS", "Irp6p", 6,'irp6p_manager')
-			#trackIrpos=IRPOS("IRpOS", "Irp6ot", 7,'irp6ot_manager')
-			postumentIrpos=IRPOS("IRpOS", "Irp6p", 6)
-			trackIrpos=IRPOS("IRpOS", "Irp6ot", 7)
+			if csn:
+				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6,'irp6p_manager')
+				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7,'irp6ot_manager')
+			else:
+				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6)
+				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7)
 			robot.SetDOFValues(trackIrpos.get_joint_position(),track.GetArmIndices())
 			robot.SetDOFValues(postumentIrpos.get_joint_position(),postument.GetArmIndices())	
 		else:

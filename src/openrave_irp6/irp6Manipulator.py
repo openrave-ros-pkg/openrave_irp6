@@ -33,6 +33,8 @@ class Irp6Manipulator:
 		self.updateManipulatorPosition()
 		self.planner=planner
 		self.simplifier=simplifier
+		
+		self.joints=None
 	#
 	#
 	# Misc methods
@@ -55,6 +57,10 @@ class Irp6Manipulator:
 			
 	def updateManipulatorPosition(self):
 		robot = self.manipulator.GetRobot()
+		
+		robot.SetActiveManipulator(self.manipulator.GetName());
+		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
+		
 		if self.irpos!=None:
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
 		else:
@@ -77,6 +83,7 @@ class Irp6Manipulator:
 		#set starting position same as real robot
 		if self.irpos!=None:
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
+		
 		traj = None
 		conf = None
 		if self.planner!=None:
@@ -205,6 +212,7 @@ class Irp6Manipulator:
 		elif self.manipulator.GetName()=='track':
 			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
 		self.moveToJointPosition(pos,simulate)
+		self.tfgToJointPosition(position=0.07387792800932617)
 	#
 	#
 	#Move gripper methods
@@ -212,10 +220,35 @@ class Irp6Manipulator:
 	#
 	def tfgToJointPosition(self,position,time=10):
 		if self.irpos!=None:
-			irpos.tfg_to_joint_position(position,time)
+			self.irpos.tfg_to_joint_position(position,time)
 		else:
 			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
 	
+	#
+	#
+	# Force movement methods
+	#
+	#
+	def startForceControl(self,tran_x=False,tran_y=False,tran_z=False,rot_x=False,rot_y=False,rot_z=False,mov_z=0,value=0.0025):
+		self.irpos.set_tool_physical_params(10.8, Vector3(0.004, 0.0, 0.156))
+		tx=ty=tz=rx=ry=rz=0;
+		if tran_x:
+			tx=value
+		if tran_y:
+			ty=value
+		if tran_z:
+			tz=value
+		if rot_x:
+			tx=value
+		if tran_y:
+			ty=value
+		if tran_z:
+			tz=value
+		self.irpos.start_force_controller(Inertia(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), ReciprocalDamping(Vector3(tx, ty, tz), Vector3(rx, ry, rz)), Wrench(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), Twist(Vector3(0.0, 0.0, mov_z), Vector3(0.0, 0.0, 0.0)))
+	
+	def stopForceControl(self):
+		self.irpos.stop_force_controller()
+		robot = self.manipulator.GetRobot()
 	#
 	#
 	#Get position methods
@@ -230,3 +263,10 @@ class Irp6Manipulator:
 			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
 			solution=None
 		return solution
+	#
+	#
+	#Get Force  methods
+	#
+	#
+	def getForceReadings(self):
+		return self.irpos.get_force_readings()
