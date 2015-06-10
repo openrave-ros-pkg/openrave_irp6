@@ -24,17 +24,16 @@ class Irp6Manipulator:
 	FAILC = '\033[91m'
 	ENDC = '\033[0m'
 	
-	def __init__(self,env,manipulator,baseManipulation,kinematicSolver,irpos=None,planner=None,simplifier='OMPL_Simplifier'):
+	def __init__(self,env,manipulator,gripper,baseManipulation,kinematicSolver,irpos=None,planner=None,simplifier='OMPL_Simplifier'):
 		self.env = env
 		self.manipulator = manipulator
+		self.gripper = gripper
 		self.baseManipulation = baseManipulation
 		self.irpos = irpos
 		self.kinematicSolver = kinematicSolver
 		self.updateManipulatorPosition()
 		self.planner=planner
 		self.simplifier=simplifier
-		
-		self.joints=None
 	#
 	#
 	# Misc methods
@@ -63,6 +62,7 @@ class Irp6Manipulator:
 		
 		if self.irpos!=None:
 			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
+			robot.SetDOFValues(self.irpos.get_tfg_joint_position(),self.gripper.GetArmIndices())
 		else:
 			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
 
@@ -212,18 +212,69 @@ class Irp6Manipulator:
 		elif self.manipulator.GetName()=='track':
 			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
 		self.moveToJointPosition(pos,simulate)
-		self.tfgToJointPosition(position=0.07387792800932617)
+		self.tfgToJointPosition(0.073,simulate);
+		
 	#
 	#
 	#Move gripper methods
 	#
 	#
-	def tfgToJointPosition(self,position,time=10):
-		if self.irpos!=None:
-			self.irpos.tfg_to_joint_position(position,time)
-		else:
-			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
-	
+	def tfgToJointPosition(self,position,simulate=True):
+		robot = self.gripper.GetRobot()
+		
+		#set starting position same as real robot
+		self.updateManipulatorPosition()
+		
+		robot.SetActiveManipulator(self.gripper.GetName());
+		robot.SetActiveDOFs(self.gripper.GetArmIndices());
+		
+		print 
+		traj = None
+		conf = None
+		try:
+			with self.env:
+				traj=self.baseManipulation.MoveActiveJoints([position],outputtrajobj=True,execute=simulate)
+			self.waitForRobot()
+			robot.SetDOFValues([position],self.gripper.GetArmIndices())
+			conf = traj.GetConfigurationSpecification();
+		except planning_error:
+			print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory"+self.ENDC
+		
+		#moving real robot
+		if self.irpos!=None and conf!=None:
+			#getting trajectory data
+			try:
+				jointGroup = conf.GetGroupFromName("joint_values")
+			except openrave_exception:
+				jointGroup = None;
+			try:
+				velGroup = conf.GetGroupFromName("joint_velocities")
+			except openrave_exception:
+				velGroup = None;
+			try:
+				gr_tim = conf.GetGroupFromName("deltatime")
+			except openrave_exception:
+				gr_tim = None
+				times = None
+			joints = []
+			vels = []
+			accs = []
+			times = []
+			for i in range (0,traj.GetNumWaypoints()):
+				w=traj.GetWaypoint(i);
+				joints.append(w[jointGroup.offset]);
+				vels.append(w[velGroup.offset]);
+				times.append(w[gr_tim.offset])
+			time = 0;
+			for i in times:
+				time = time+i
+			#moving
+			print joints[-1]
+			if len(times)!=0:
+				self.irpos.tfg_to_joint_position(joints[-1],time)
+			else:
+				print self.OKBLUEC+"[OpenRAVEIrp6] Manipulator already in position"+self.ENDC
+			
 	#
 	#
 	# Force movement methods
