@@ -269,9 +269,8 @@ class Irp6Manipulator:
 			for i in times:
 				time = time+i
 			#moving
-			print joints[-1]
 			if len(times)!=0:
-				self.irpos.tfg_to_joint_position(joints[-1],time)
+				self.irpos.tfg_to_joint_position(position,time)
 			else:
 				print self.OKBLUEC+"[OpenRAVEIrp6] Manipulator already in position"+self.ENDC
 			
