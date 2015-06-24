@@ -55,6 +55,8 @@ class Irp6Robot:
 			robot.SetDOFValues(postumentIrpos.get_tfg_joint_position(),postument_tfg.GetArmIndices())
 			robot.SetDOFValues(trackIrpos.get_tfg_joint_position(),track_tfg.GetArmIndices())
 		else:
+			postumentIrpos=None
+			trackIrpos=None
 			robot.SetDOFValues([0,-0.10063291139240507, -1.5419428654532268, 0.019737556833721442, 1.1335183568246088, 3.658072916666667, -2.7381185214159984],track.GetArmIndices())
 			robot.SetDOFValues([-0.10063291139240507, -1.5419428654532268, 0.019737556833721442, 1.1335183568246088, 3.658072916666667, -2.7381185214159984],postument.GetArmIndices())
 			robot.SetDOFValues([0.72],postument_tfg.GetArmIndices())
@@ -62,21 +64,3 @@ class Irp6Robot:
 		
 		self.postument = Irp6Manipulator(env,postument,postument_tfg,baseManipulation,irp6Kinematic,postumentIrpos,planner,simplifier)
 		self.track = Irp6Manipulator(env,track,track_tfg,baseManipulation,irp6Kinematic,trackIrpos,planner,simplifier)
-		
-	def move(self):
-		track = self.robot.SetActiveManipulator('track');
-		#try:
-		print "Pos 1"
-		with self.env:
-			print "jak powinno"
-			sol1 = [0,0, -1.54, 0, 0, 4.71, -1.57]
-			traj=self.baseManipulation.MoveManipulator(sol1,outputtrajobj=True,execute=True)
-		while not self.robot.GetController().IsDone():
-			time.sleep(0.01)	
-		postument = self.robot.SetActiveManipulator('postument');
-		with self.env:
-			print "jak jest"
-			sol2 = self.irp6Kinematic.solveIKPost([-0.000379723678393, -0.999880665371, 0.00120047894583, 0.0153970671608],[0.865904485399, -0.00059724452807, 1.12842285353])
-			traj=self.baseManipulation.MoveManipulator(sol2,outputtrajobj=True,execute=True)
-		while not self.robot.GetController().IsDone():
-			time.sleep(0.01)

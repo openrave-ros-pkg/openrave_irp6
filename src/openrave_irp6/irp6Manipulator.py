@@ -211,8 +211,8 @@ class Irp6Manipulator:
 			pos=[-0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
 		elif self.manipulator.GetName()=='track':
 			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
-		self.moveToJointPosition(pos,simulate)
 		self.tfgToJointPosition(0.073,simulate);
+		self.moveToJointPosition(pos,simulate)
 		
 	#
 	#
@@ -228,7 +228,6 @@ class Irp6Manipulator:
 		robot.SetActiveManipulator(self.gripper.GetName());
 		robot.SetActiveDOFs(self.gripper.GetArmIndices());
 		
-		print 
 		traj = None
 		conf = None
 		try:
@@ -274,6 +273,53 @@ class Irp6Manipulator:
 			else:
 				print self.OKBLUEC+"[OpenRAVEIrp6] Manipulator already in position"+self.ENDC
 			
+	def attachItem(self,kinBody):
+		robot = self.manipulator.GetRobot()
+		
+		if self.manipulator.GetName()=='postument':
+			p = self.kinematicSolver.solveFKPost()
+			p[0][3] += 0
+			p[1][3] += 2.11
+			p[2][3] += 0.0
+		elif self.manipulator.GetName()=='track':
+			p = self.kinematicSolver.solveFKTrack()
+			p[0][3] += 0
+			p[1][3] += 0
+			p[2][3] += 0.0
+		else:
+			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
+			position=None
+			return
+		"""z=0.03
+		y=0.0
+		x=0.00
+		p[0][3] = p[0][2]*z + p[0][1]*y + p[0][0]*x + p[0][3];
+		p[1][3] = p[1][2]*z + p[1][1]*y + p[1][0]*x + p[1][3];
+		p[2][3] = p[2][2]*z + p[2][1]*y + p[2][0]*x + p[2][3];"""
+		
+		transform = numpy.array([p[0],p[1],p[2],p[3]])
+		kinBody.SetTransform(transform)
+		
+		robot.SetActiveManipulator(self.manipulator.GetName());
+		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
+		robot.Grab(kinBody)
+	def releaseItem(self,kinBody):
+		robot = self.manipulator.GetRobot()
+		
+		robot.SetActiveManipulator(self.manipulator.GetName());
+		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
+		robot.Release(kinBody)
+		
+		p = numpy.array([
+		[ 1,	0,	0,	0 ],
+		[ 0,	1,	0,	0 ],
+		[ 0,	0,	1,	0 ],
+		[ 0,	0,	0,	1 ]
+		])
+		
+		transform = numpy.array([p[0],p[1],p[2],p[3]])
+		kinBody.SetTransform(transform)
+		
 	#
 	#
 	# Force movement methods
