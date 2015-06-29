@@ -194,6 +194,8 @@ class Irp6Manipulator:
 			print self.FAILC+"[OpenRAVEIrp6] Could not find IK solution"+self.ENDC
 	
 	def moveRelativeToCartesianPosition(self,x_tran=0,y_tran=0,z_tran=0,x_rot=0,y_rot=0,z_rot=0,simulate=True):
+		self.updateManipulatorPosition()
+		
 		if self.manipulator.GetName()=='postument':
 			solution = self.kinematicSolver.solveRelativeIKPost([x_rot,y_rot,z_rot],[x_tran,y_tran,z_tran])
 		elif self.manipulator.GetName()=='track':
@@ -326,25 +328,27 @@ class Irp6Manipulator:
 	#
 	#
 	def startForceControl(self,tran_x=False,tran_y=False,tran_z=False,rot_x=False,rot_y=False,rot_z=False,mov_z=0,value=0.0025):
-		self.irpos.set_tool_physical_params(10.8, Vector3(0.004, 0.0, 0.156))
-		tx=ty=tz=rx=ry=rz=0;
-		if tran_x:
-			tx=value
-		if tran_y:
-			ty=value
-		if tran_z:
-			tz=value
-		if rot_x:
-			tx=value
-		if tran_y:
-			ty=value
-		if tran_z:
-			tz=value
-		self.irpos.start_force_controller(Inertia(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), ReciprocalDamping(Vector3(tx, ty, tz), Vector3(rx, ry, rz)), Wrench(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), Twist(Vector3(0.0, 0.0, mov_z), Vector3(0.0, 0.0, 0.0)))
+		if self.irpos!=None:
+			self.irpos.set_tool_physical_params(10.8, Vector3(0.004, 0.0, 0.156))
+			tx=ty=tz=rx=ry=rz=0;
+			if tran_x:
+				tx=value
+			if tran_y:
+				ty=value
+			if tran_z:
+				tz=value
+			if rot_x:
+				tx=value
+			if tran_y:
+				ty=value
+			if tran_z:
+				tz=value
+			self.irpos.start_force_controller(Inertia(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), ReciprocalDamping(Vector3(tx, ty, tz), Vector3(rx, ry, rz)), Wrench(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), Twist(Vector3(0.0, 0.0, mov_z), Vector3(0.0, 0.0, 0.0)))
 	
 	def stopForceControl(self):
-		self.irpos.stop_force_controller()
-		robot = self.manipulator.GetRobot()
+		if self.irpos!=None:
+			self.irpos.stop_force_controller()
+			robot = self.manipulator.GetRobot()
 	#
 	#
 	#Get position methods
