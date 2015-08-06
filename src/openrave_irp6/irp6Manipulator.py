@@ -61,8 +61,16 @@ class Irp6Manipulator:
 		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
 		
 		if self.irpos!=None:
-			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
-			robot.SetDOFValues(self.irpos.get_tfg_joint_position(),self.gripper.GetArmIndices())
+			try:
+				robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
+				robot.SetDOFValues(self.irpos.get_tfg_joint_position(),self.gripper.GetArmIndices())
+			except openrave_exception:
+				self.baseManipulation.MoveActiveJoints(self.irpos.get_joint_position(),outputtrajobj=False,execute=True)
+				robot.SetActiveManipulator(self.gripper.GetName());
+				robot.SetActiveDOFs(self.gripper.GetArmIndices());
+				self.baseManipulation.MoveActiveJoints(self.irpos.get_tfg_joint_position(),outputtrajobj=False,execute=True)
+				
+				
 		else:
 			print self.WARNINGC+"[OpenRAVEIrp6] Irpos not set"+self.ENDC
 
@@ -76,13 +84,12 @@ class Irp6Manipulator:
 		if len(self.manipulator.GetArmIndices())!=len(dstJoints):
 			print self.FAILC+"[OpenRAVEIrp6] Joints length error"+self.ENDC
 		robot = self.manipulator.GetRobot()
-	
-		robot.SetActiveManipulator(self.manipulator.GetName());
-		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
 		
 		#set starting position same as real robot
-		if self.irpos!=None:
-			robot.SetDOFValues(self.irpos.get_joint_position(),self.manipulator.GetArmIndices())
+		self.updateManipulatorPosition()
+		
+		robot.SetActiveManipulator(self.manipulator.GetName());
+		robot.SetActiveDOFs(self.manipulator.GetArmIndices());
 		
 		traj = None
 		conf = None
@@ -118,7 +125,7 @@ class Irp6Manipulator:
 				with self.env:
 					traj=self.baseManipulation.MoveActiveJoints(dstJoints,outputtrajobj=True,execute=simulate)
 				self.waitForRobot()
-				robot.SetDOFValues(dstJoints,self.manipulator.GetArmIndices())
+				self.updateManipulatorPosition()
 				conf = traj.GetConfigurationSpecification();
 			except planning_error:
 				print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory"+self.ENDC
@@ -164,8 +171,8 @@ class Irp6Manipulator:
 			else:
 				print self.OKBLUEC+"[OpenRAVEIrp6] Manipulator already in position"+self.ENDC
 				
-				
 	def moveRelativeToJointPosition(self,joints,simulate=True):
+		self.updateManipulatorPosition()
 		#Check length of joints list
 		if len(self.manipulator.GetArmIndices())!=len(joints):
 			print self.FAILC+"[OpenRAVEIrp6] Joints length error"+self.ENDC
@@ -177,9 +184,10 @@ class Irp6Manipulator:
 		recentJoints=self.irpos.get_joint_position()
 		dstJoints = map(operator.add, recentJoints,joints)
 		self.moveToJointPosition(dstJoints,simulate)
-	
+		self.updateManipulatorPosition()
 
 	def moveToCartesianPosition(self,position,simulate=True):
+		self.updateManipulatorPosition()
 		if self.manipulator.GetName()=='postument':
 			solution = self.kinematicSolver.solveIKPost([position.orientation.x, position.orientation.y, position.orientation.z, position.orientation.w ],[position.position.x, position.position.y, position.position.z])
 		elif self.manipulator.GetName()=='track':
@@ -192,6 +200,7 @@ class Irp6Manipulator:
 			self.moveToJointPosition(solution,simulate);
 		else:
 			print self.FAILC+"[OpenRAVEIrp6] Could not find IK solution"+self.ENDC
+		self.updateManipulatorPosition()
 	
 	def moveRelativeToCartesianPosition(self,x_tran=0,y_tran=0,z_tran=0,x_rot=0,y_rot=0,z_rot=0,simulate=True):
 		self.updateManipulatorPosition()
@@ -207,6 +216,8 @@ class Irp6Manipulator:
 			self.moveToJointPosition(solution,simulate);
 		else:
 			print self.FAILC+"[OpenRAVEIrp6] Could not find IK solution"+self.ENDC
+			
+		self.updateManipulatorPosition()
 
 	def moveToSynchroPosition(self,simulate=True):
 		if self.manipulator.GetName()=='postument':
@@ -236,10 +247,12 @@ class Irp6Manipulator:
 			with self.env:
 				traj=self.baseManipulation.MoveActiveJoints([position],outputtrajobj=True,execute=simulate)
 			self.waitForRobot()
-			robot.SetDOFValues([position],self.gripper.GetArmIndices())
+			self.updateManipulatorPosition()
 			conf = traj.GetConfigurationSpecification();
 		except planning_error:
-			print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory"+self.ENDC
+			print self.FAILC+"[OpenRAVEIrp6] Destination or start point in collision. Cannot plan trajectory. Moving gripper without planning"+self.ENDC
+			if self.irpos!=None:
+				self.irpos.tfg_to_joint_position(position,10)
 		
 		#moving real robot
 		if self.irpos!=None and conf!=None:
@@ -349,12 +362,15 @@ class Irp6Manipulator:
 		if self.irpos!=None:
 			self.irpos.stop_force_controller()
 			robot = self.manipulator.GetRobot()
+		self.updateManipulatorPosition()
 	#
 	#
 	#Get position methods
 	#
 	#
 	def getCartesianPosition(self):
+		self.updateManipulatorPosition()
+		
 		if self.manipulator.GetName()=='postument':
 			solution = self.kinematicSolver.solveFKPost()
 		elif self.manipulator.GetName()=='track':

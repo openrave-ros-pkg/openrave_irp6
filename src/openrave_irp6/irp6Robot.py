@@ -44,7 +44,7 @@ class Irp6Robot:
 		robot.SetDOFAccelerationLimits(accel_limits)
 		
 		if manageIrpos==True:
-			if csn:
+			if csn==True:
 				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6,'irp6p_manager')
 				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7,'irp6ot_manager')
 			else:
