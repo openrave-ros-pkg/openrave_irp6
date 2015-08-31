@@ -48,8 +48,8 @@ class Irp6Robot:
 				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6,'irp6p_manager')
 				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7,'irp6ot_manager')
 			else:
-				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6)
-				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7)
+				postumentIrpos=IRPOS("IRpOS", "Irp6p", 6,'irp6p_manager')
+				trackIrpos=IRPOS("IRpOS", "Irp6ot", 7,'irp6ot_manager')
 			robot.SetDOFValues(trackIrpos.get_joint_position(),track.GetArmIndices())
 			robot.SetDOFValues(postumentIrpos.get_joint_position(),postument.GetArmIndices())
 			robot.SetDOFValues(postumentIrpos.get_tfg_joint_position(),postument_tfg.GetArmIndices())

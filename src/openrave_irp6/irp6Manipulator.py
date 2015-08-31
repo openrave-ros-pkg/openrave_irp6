@@ -221,9 +221,9 @@ class Irp6Manipulator:
 
 	def moveToSynchroPosition(self,simulate=True):
 		if self.manipulator.GetName()=='postument':
-			pos=[-0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
+			pos=[-0.10063291139240507, -1.5419428654532268, 0.019737556833721442, 1.1335183568246088, 3.736197916666667, -2.7381185214159984]
 		elif self.manipulator.GetName()=='track':
-			pos=[0.0, -0.10443037974683544, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.08203125, 0]
+			pos=[0.0, -0.0981012658227848, -1.5476547584053457, 0.012313341484619551, 1.2106388401258297, 4.1796875, -2.664386632027679]
 		self.tfgToJointPosition(0.073,simulate);
 		self.moveToJointPosition(pos,simulate)
 		
@@ -340,9 +340,9 @@ class Irp6Manipulator:
 	# Force movement methods
 	#
 	#
-	def startForceControl(self,tran_x=False,tran_y=False,tran_z=False,rot_x=False,rot_y=False,rot_z=False,mov_z=0,value=0.0025):
+	def startForceControl(self,tran_x=False,tran_y=False,tran_z=False,rot_x=False,rot_y=False,rot_z=False,mov_z=0,force_z=0,value=0.0025):
 		if self.irpos!=None:
-			self.irpos.set_tool_physical_params(10.8, Vector3(0.004, 0.0, 0.156))
+			self.irpos.set_tool_physical_params(10.8, Vector3(0.004, 0.0, 0.256))
 			tx=ty=tz=rx=ry=rz=0;
 			if tran_x:
 				tx=value
@@ -351,12 +351,12 @@ class Irp6Manipulator:
 			if tran_z:
 				tz=value
 			if rot_x:
-				tx=value
-			if tran_y:
-				ty=value
-			if tran_z:
-				tz=value
-			self.irpos.start_force_controller(Inertia(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), ReciprocalDamping(Vector3(tx, ty, tz), Vector3(rx, ry, rz)), Wrench(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), Twist(Vector3(0.0, 0.0, mov_z), Vector3(0.0, 0.0, 0.0)))
+				rx=value
+			if rot_y:
+				ry=value
+			if rot_z:
+				rz=value
+			self.irpos.start_force_controller(Inertia(Vector3(0.0, 0.0, 0.0), Vector3(0.5, 0.5, 0.5)), ReciprocalDamping(Vector3(tx, ty, tz), Vector3(rx, ry, rz)), Wrench(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0)), Twist(Vector3(0.0, 0.0, mov_z), Vector3(0.0, 0.0, force_z)))
 	
 	def stopForceControl(self):
 		if self.irpos!=None:
@@ -379,6 +379,12 @@ class Irp6Manipulator:
 			print self.FAILC+"[OpenRAVEIrp6] IK for "+ str(self.manipulator.GetName())+ " unhandled" +self.ENDC
 			solution=None
 		return solution
+		
+	def getJointPosition(self):
+		position = None
+		if self.irpos !=None:
+			position = self.irpos.get_joint_position()
+		return position
 	#
 	#
 	#Get Force  methods
